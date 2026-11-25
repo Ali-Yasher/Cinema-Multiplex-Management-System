@@ -3,19 +3,70 @@
 An object-oriented C++ console application designed to manage movie screen schedules, interactive seat reservations, concession stand inventory, customer loyalty points, and studio box-office settlements.
 
 ## Core Functional Modules
-Beyond the five core modules implemented in Milestone 1, the following ten modules define the broader architectural scope of the **Cinema Multiplex Ticketing & Loyalty Management System**:
+The application is divided into five core functional modules, each engineered to handle a specific operational domain of a modern movie theater:
 
-1. **Movie Catalog & Metadata Management Module:** Maintains the central repository of active and upcoming films, storing titles, genres, languages, censor ratings (PG-13, R), total runtimes, and distributor agreements for validated scheduling.
-2. **Dynamic Pricing & Surge Tariff Engine:** Automatically adjusts base ticket prices based on showtime demand (matinee discounts vs. prime evening rates), weekend/holiday surcharges, and auditorium categories.
-3. **Ticket Cancellation & Refund Processing Module:** Validates cancellation requests against pre-show cutoff timers (e.g., 2 hours prior to screening), computes cancellation fee deductions, updates transaction logs, and releases canceled seats back to availability.
-4. **Digital E-Ticket & QR Gate Validator Module:** Generates unique alphanumeric booking references upon checkout and verifies ticket authenticity at auditorium entry gates to prevent duplicate entries.
-5. **Pantry Supply Chain & Low-Stock Alert Module:** Tracks raw concession inventory (corn kernels, beverage syrups, packaging cups), triggers low-stock warnings below threshold limits, and generates vendor restock orders.
-6. **Promotional Voucher & Corporate Bulk Booking Module:** Validates discount promo codes, student/senior concessions, and bulk seat reservations for corporate events or school screenings, applying automated percentage discounts at checkout.
-7. **Staff Shift & Role-Based Access Control (RBAC) Module:** Authenticates box-office cashiers, concession operators, and cinema managers using role-specific credentials, restricting financial settlement operations to authorized managers.
-8. **Auditorium Maintenance & Equipment Health Tracker:** Logs projector lamp hours, audio calibration schedules, and damaged seat reports, blocking affected screens or seats from active scheduling until repairs are cleared.
-9. **Entertainment Tax & Regulatory Compliance Module:** Computes regional entertainment duties and Goods & Services Tax (GST) separately on movie tickets and food items to produce tax-compliant itemized receipts.
-10. **Waitlist & Automated Seat-Release Notification Module:** Places customers on a priority queue for sold-out screenings and notifies the next patron in line if an unpaid seat reservation expires.
+### 1. Showtime & Screen Scheduler
+* **Owner:** Ali Yasher
+* **Core Responsibility:** Manages physical theater halls, movie catalogs, and screening schedules while preventing scheduling conflicts.
+* **Key Features:**
+  * Configures theater halls with specific screen types (e.g., Standard, IMAX, VIP) and seating capacities.
+  * Registers movies along with their exact runtimes.
+  * Automatically enforces a mandatory **cleaning & turnover gap** between consecutive screenings in the same hall to prevent overlapping shows.
+* **Primary Data Managed:** Hall types, seating capacities, movie runtimes, show start times, and cleaning buffer durations (in minutes).
 
-## Repository Branching Rules
-- Each member develops their assigned module in a separate branch (e.g., `member1-scheduler`).
-- Completed modules are merged into `main` via reviewed Pull Requests.
+### 2. Seat Selection Engine
+* **Owner:** M. Afnan
+* **Core Responsibility:** Handles real-time visual seating layouts and manages seat reservation states during the booking lifecycle.
+* **Key Features:**
+  * Dynamically renders a 2D seat matrix mapped to each hall's specific capacity and layout.
+  * Implements state-machine transitions for seats: **Free** (available for selection), **Locked** (temporarily held during checkout), and **Booked** (confirmed purchase).
+  * Automatically releases locked seats if a transaction times out or is canceled.
+* **Primary Data Managed:** 2D seat matrices, row/column coordinates, and real-time seat states (`Free`, `Locked`, `Booked`).
+
+### 3. Concessions & Candy Bar POS
+* **Owner:** Wafa Saqib
+* **Core Responsibility:** Operates the Point-of-Sale (POS) system for food, beverages, and snacks alongside live inventory tracking.
+* **Key Features:**
+  * Processes snack and combo orders at the counter or alongside ticket checkouts.
+  * Automatically deducts sold quantities from pantry inventory in real time to prevent overselling.
+  * Tracks itemized order lines for accurate receipt generation and stock auditing.
+* **Primary Data Managed:** Item names, unit prices, current pantry stock levels, and itemized order lines.
+
+### 4. Loyalty & Gift Card System
+* **Owner:** Asad Ali Raza
+* **Core Responsibility:** Drives customer retention through a points-based rewards program, membership tiers, and gift card redemptions.
+* **Key Features:**
+  * Calculates and awards loyalty points automatically based on dollar spend across tickets and concessions.
+  * Tracks customer membership tiers (e.g., Silver, Gold, Platinum) based on cumulative activity.
+  * Allows members to redeem accumulated points or gift card balances directly toward movie tickets.
+* **Primary Data Managed:** Member profiles/names, point balances, loyalty tier statuses, and redemption histories.
+
+### 5. Settlement & Analytics
+* **Owner:** Alsihba Hanif
+* **Core Responsibility:** Aggregates operational and financial data to calculate distributor revenue splits and theater performance metrics.
+* **Key Features:**
+  * Computes gross box office revenue and executes automated revenue-sharing calculations (e.g., 50/50 split between the theater and film distributors).
+  * Calculates hall occupancy percentages by comparing total tickets sold against available hall capacity per showtime and across date ranges.
+* **Primary Data Managed:** Gross/net revenue figures, revenue split percentages, total seats sold, and total available capacity.
+
+---
+
+## Team & Module Ownership
+
+| # | Owner | Module | Core Job | Primary Data Entities |
+| :- | :--- | :--- | :--- | :--- |
+| **1** | **Ali Yasher** | Showtime & Screen Scheduler | Creates halls, movies, and shows; prevents overlaps via cleaning gaps. | Hall type, capacity, runtime, start time, cleaning minutes |
+| **2** | **M. Afnan** | Seat Selection Engine | Renders seat grids; locks, books, or releases seats. | Seat matrix, seat state (`Free` / `Locked` / `Booked`) |
+| **3** | **Wafa Saqib** | Concessions & Candy Bar POS | Processes snack sales and deducts from pantry inventory. | Item name, price, stock, order lines |
+| **4** | **Asad Ali Raza** | Loyalty & Gift Card | Awards points per dollar, tracks tiers, and redeems points for tickets. | Member name, points, tier |
+| **5** | **Alsihba Hanif** | Settlement & Analytics | Splits box office revenue and calculates occupancy percentages. | Revenue, split %, seats sold vs. total capacity |
+
+---
+
+## End-to-End Operational Workflow
+
+1. **Scheduling:** A hall and movie are registered in the **Showtime & Screen Scheduler**, establishing a valid, conflict-free screening slot.
+2. **Ticketing & Locking:** A customer selects a showtime; the **Seat Selection Engine** displays the live seat matrix and temporarily **Locks** the chosen seats.
+3. **Upselling & Loyalty:** During checkout, the customer adds snacks via the **Concessions POS** (deducting pantry stock) and applies their **Loyalty** account to earn or redeem points.
+4. **Confirmation:** Upon payment, locked seats transition to **Booked**, and points are credited to the member's profile.
+5. **Reporting:** At the end of the screening or business day, **Settlement & Analytics** calculates the hall's occupancy rate and divides ticket revenue according to the configured split percentage.
