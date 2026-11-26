@@ -552,6 +552,214 @@ class Seat {
         }
     };
 
+    // ==================== MODULE 4 ====================
+class Member {
+    private:
+        int memberId;
+        string name;
+        int points;
+        string tier;
+    
+        void updateTier() {
+            if (points >= 150) {
+                tier = "Gold";
+            } else if (points >= 50) {
+                tier = "Silver";
+            } else {
+                tier = "Bronze";
+            }
+        }
+    
+    public:
+        Member() {
+            memberId = 0;
+            name = "Guest";
+            points = 0;
+            tier = "Bronze";
+        }
+    
+        Member(int id, string n) {
+            memberId = id;
+            setName(n);
+            points = 0;
+            tier = "Bronze";
+        }
+    
+        Member(const Member& other) {
+            memberId = other.memberId;
+            name = other.name;
+            points = other.points;
+            tier = other.tier;
+        }
+    
+        void setName(string n) {
+            if (!n.empty()) name = n;
+        }
+    
+        int getMemberId() const { return memberId; }
+        string getName() const { return name; }
+        int getPoints() const { return points; }
+        string getTier() const { return tier; }
+    
+        void addPoints(int pts) {
+            if (pts > 0) {
+                points += pts;
+                updateTier();
+            }
+        }
+    
+        bool redeemPoints(int pts) {
+            if (pts > 0 && points >= pts) {
+                points -= pts;
+                updateTier();
+                return true;
+            }
+            return false;
+        }
+    };
+    
+    class GiftCard {
+    private:
+        string cardNumber;
+        double balance;
+    
+    public:
+        GiftCard() {
+            cardNumber = "GC-000";
+            balance = 0.0;
+        }
+    
+        GiftCard(string num, double bal) {
+            cardNumber = num;
+            setBalance(bal);
+        }
+    
+        GiftCard(const GiftCard& other) {
+            cardNumber = other.cardNumber;
+            balance = other.balance;
+        }
+    
+        void setBalance(double bal) {
+            if (bal >= 0.0) balance = bal;
+        }
+    
+        string getCardNumber() const { return cardNumber; }
+        double getBalance() const { return balance; }
+    
+        void recharge(double amount) {
+            if (amount > 0.0) balance += amount;
+        }
+    
+        bool deduct(double amount) {
+            if (amount > 0.0 && balance >= amount) {
+                balance -= amount;
+                return true;
+            }
+            return false;
+        }
+    };
+    
+    class LoyaltyProgram {
+    private:
+        Member* members;
+        int memberCount;
+        int memberCap;
+    
+        GiftCard* cards;
+        int cardCount;
+        int cardCap;
+    
+    public:
+        LoyaltyProgram() {
+            memberCap = 20;
+            memberCount = 0;
+            members = new Member[memberCap];
+    
+            cardCap = 20;
+            cardCount = 0;
+            cards = new GiftCard[cardCap];
+        }
+    
+        LoyaltyProgram(const LoyaltyProgram& other) {
+            memberCap = other.memberCap;
+            memberCount = other.memberCount;
+            members = new Member[memberCap];
+            for (int i = 0; i < memberCount; i++) {
+                members[i] = other.members[i];
+            }
+    
+            cardCap = other.cardCap;
+            cardCount = other.cardCount;
+            cards = new GiftCard[cardCap];
+            for (int i = 0; i < cardCount; i++) {
+                cards[i] = other.cards[i];
+            }
+        }
+    
+        ~LoyaltyProgram() {
+            delete[] members;
+            delete[] cards;
+        }
+    
+        int getMemberCount() const { return memberCount; }
+    
+        bool registerMember(const Member& m) {
+            if (memberCount < memberCap) {
+                members[memberCount] = m;
+                memberCount++;
+                return true;
+            }
+            return false;
+        }
+    
+        bool addGiftCard(const GiftCard& gc) {
+            if (cardCount < cardCap) {
+                cards[cardCount] = gc;
+                cardCount++;
+                return true;
+            }
+            return false;
+        }
+    
+        bool addPoints(int memberId, int pts) {
+            for (int i = 0; i < memberCount; i++) {
+                if (members[i].getMemberId() == memberId) {
+                    members[i].addPoints(pts);
+                    return true;
+                }
+            }
+            return false;
+        }
+    
+        bool redeemFreeTicket(int memberId, int costPoints = 100) {
+            for (int i = 0; i < memberCount; i++) {
+                if (members[i].getMemberId() == memberId) {
+                    return members[i].redeemPoints(costPoints);
+                }
+            }
+            return false;
+        }
+    
+        double getTotalGiftCardValue() const {
+            double total = 0.0;
+            for (int i = 0; i < cardCount; i++) {
+                total += cards[i].getBalance();
+            }
+            return total;
+        }
+    
+        void showMemberStatus(int memberId) const {
+            for (int i = 0; i < memberCount; i++) {
+                if (members[i].getMemberId() == memberId) {
+                    cout << "Member [" << members[i].getMemberId() << "] " << members[i].getName()
+                         << " | Points: " << members[i].getPoints()
+                         << " | Tier: " << members[i].getTier() << endl;
+                    return;
+                }
+            }
+        }
+    };
+    
 
 int main() {
     //  Module 1
