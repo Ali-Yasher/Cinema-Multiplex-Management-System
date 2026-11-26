@@ -3,6 +3,8 @@
 
 using namespace std;
 
+//========================================MODULE:1===============================================
+
 class Movie {
 private:
     string title;
@@ -244,6 +246,312 @@ public:
         }
     }
 };
+
+//=========================================MODULE:2==============================================
+
+class Seat {
+    private:
+        int row;
+        int col;
+        string status; // "Free", "Locked", "Booked"
+    
+    public:
+        Seat() {
+            row = 0;
+            col = 0;
+            status = "Free";
+        }
+    
+        Seat(int r, int c) {
+            row = (r >= 0) ? r : 0;
+            col = (c >= 0) ? c : 0;
+            status = "Free";
+        }
+    
+        Seat(const Seat& other) {
+            row = other.row;
+            col = other.col;
+            status = other.status;
+        }
+    
+        int getRow() const { return row; }
+        int getCol() const { return col; }
+        string getStatus() const { return status; }
+    
+        bool lock() {
+            if (status == "Free") {
+                status = "Locked";
+                return true;
+            }
+            return false;
+        }
+    
+        bool book() {
+            if (status == "Locked" || status == "Free") {
+                status = "Booked";
+                return true;
+            }
+            return false;
+        }
+    
+        bool release() {
+            if (status == "Locked") {
+                status = "Free";
+                return true;
+            }
+            return false;
+        }
+    };
+    
+    class SeatMatrix {
+    private:
+        int rows;
+        int cols;
+        Seat** grid;
+    
+        void allocateGrid(int r, int c) {
+            rows = (r > 0) ? r : 1;
+            cols = (c > 0) ? c : 1;
+            grid = new Seat*[rows];
+            for (int i = 0; i < rows; i++) {
+                grid[i] = new Seat[cols];
+                for (int j = 0; j < cols; j++) {
+                    grid[i][j] = Seat(i, j);
+                }
+            }
+        }
+    
+        void freeGrid() {
+            if (grid != nullptr) {
+                for (int i = 0; i < rows; i++) {
+                    delete[] grid[i];
+                }
+                delete[] grid;
+                grid = nullptr;
+            }
+        }
+    
+    public:
+        SeatMatrix() {
+            rows = 0;
+            cols = 0;
+            grid = nullptr;
+        }
+    
+        SeatMatrix(int r, int c) {
+            allocateGrid(r, c);
+        }
+    
+        SeatMatrix(const SeatMatrix& other) {
+            rows = other.rows;
+            cols = other.cols;
+            if (other.grid != nullptr && rows > 0 && cols > 0) {
+                grid = new Seat*[rows];
+                for (int i = 0; i < rows; i++) {
+                    grid[i] = new Seat[cols];
+                    for (int j = 0; j < cols; j++) {
+                        grid[i][j] = other.grid[i][j];
+                    }
+                }
+            } else {
+                grid = nullptr;
+            }
+        }
+    
+        ~SeatMatrix() {
+            freeGrid();
+        }
+    
+        int getRows() const { return rows; }
+        int getCols() const { return cols; }
+    
+        string getSeatStatus(int r, int c) const {
+            if (r >= 0 && r < rows && c >= 0 && c < cols) {
+                return grid[r][c].getStatus();
+            }
+            return "Invalid";
+        }
+    
+        int countFreeSeats() const {
+            int freeCount = 0;
+            for (int i = 0; i < rows; i++) {
+                for (int j = 0; j < cols; j++) {
+                    if (grid[i][j].getStatus() == "Free") {
+                        freeCount++;
+                    }
+                }
+            }
+            return freeCount;
+        }
+    
+        bool lockSeat(int r, int c) {
+            if (r >= 0 && r < rows && c >= 0 && c < cols) {
+                if (grid[r][c].lock()) {
+                    return true;
+                }
+            }
+            cout << "Seat " << static_cast<char>('A' + r) << (c + 1) << " is not Free." << endl;
+            suggestNearestFree(r, c, 2);
+            return false;
+        }
+    
+        bool confirmBooking(int r, int c) {
+            if (r >= 0 && r < rows && c >= 0 && c < cols) {
+                return grid[r][c].book();
+            }
+            return false;
+        }
+    
+        bool releaseSeat(int r, int c) {
+            if (r >= 0 && r < rows && c >= 0 && c < cols) {
+                return grid[r][c].release();
+            }
+            return false;
+        }
+    
+        void suggestNearestFree(int targetRow, int targetCol, int needed) const {
+            cout << "Suggested free seats: ";
+            int found = 0;
+            int maxDist = rows + cols;
+    
+            for (int dist = 0; dist <= maxDist && found < needed; dist++) {
+                for (int i = 0; i < rows && found < needed; i++) {
+                    for (int j = 0; j < cols && found < needed; j++) {
+                        int rDiff = (i > targetRow) ? (i - targetRow) : (targetRow - i);
+                        int cDiff = (j > targetCol) ? (j - targetCol) : (targetCol - j);
+                        if (rDiff + cDiff == dist && grid[i][j].getStatus() == "Free") {
+                            cout << static_cast<char>('A' + i) << (j + 1) << " ";
+                            found++;
+                        }
+                    }
+                }
+            }
+            if (found == 0) {
+                cout << "None available";
+            }
+            cout << endl;
+        }
+    
+        void displayMatrix() const {
+            cout << "   ";
+            for (int j = 0; j < cols; j++) {
+                cout << " " << (j + 1) << " ";
+            }
+            cout << "   (. = Free, L = Locked, X = Booked)" << endl;
+    
+            for (int i = 0; i < rows; i++) {
+                cout << " " << static_cast<char>('A' + i) << " ";
+                for (int j = 0; j < cols; j++) {
+                    string st = grid[i][j].getStatus();
+                    char sym = '.';
+                    if (st == "Locked") sym = 'L';
+                    else if (st == "Booked") sym = 'X';
+                    cout << "[" << sym << "]";
+                }
+                cout << endl;
+            }
+            cout << "Total Free Seats: " << countFreeSeats() << endl;
+        }
+    };
+    
+    class Booking {
+    private:
+        string bookingId;
+        int memberId;
+        string hallClass;
+        string* seatLabels;
+        int seatCount;
+        double ticketTotal;
+        int earnedPoints;
+    
+    public:
+        Booking() {
+            bookingId = "BK000";
+            memberId = 0;
+            hallClass = "Silver";
+            seatLabels = nullptr;
+            seatCount = 0;
+            ticketTotal = 0.0;
+            earnedPoints = 0;
+        }
+    
+        Booking(string bId, int mId, string hClass, string labels[], int count, double unitPrice) {
+            bookingId = bId;
+            memberId = mId;
+            hallClass = hClass;
+            seatCount = (count > 0) ? count : 0;
+            ticketTotal = (unitPrice >= 0.0) ? (unitPrice * seatCount) : 0.0;
+    
+            if (seatCount > 0 && labels != nullptr) {
+                seatLabels = new string[seatCount];
+                for (int i = 0; i < seatCount; i++) {
+                    seatLabels[i] = labels[i];
+                }
+            } else {
+                seatLabels = nullptr;
+            }
+    
+            earnedPoints = calculatePointsByHallClass();
+        }
+    
+        Booking(const Booking& other) {
+            bookingId = other.bookingId;
+            memberId = other.memberId;
+            hallClass = other.hallClass;
+            seatCount = other.seatCount;
+            ticketTotal = other.ticketTotal;
+            earnedPoints = other.earnedPoints;
+    
+            if (other.seatLabels != nullptr && seatCount > 0) {
+                seatLabels = new string[seatCount];
+                for (int i = 0; i < seatCount; i++) {
+                    seatLabels[i] = other.seatLabels[i];
+                }
+            } else {
+                seatLabels = nullptr;
+            }
+        }
+    
+        ~Booking() {
+            delete[] seatLabels;
+        }
+    
+        void setTicketTotal(double total) {
+            if (total >= 0.0) {
+                ticketTotal = total;
+                earnedPoints = calculatePointsByHallClass();
+            }
+        }
+    
+        string getBookingId() const { return bookingId; }
+        int getMemberId() const { return memberId; }
+        string getHallClass() const { return hallClass; }
+        double getTicketTotal() const { return ticketTotal; }
+        int getEarnedPoints() const { return earnedPoints; }
+    
+        int calculatePointsByHallClass() const {
+            double rate = 1.0; // Silver = 1 pt/$1
+            if (hallClass == "Gold") {
+                rate = 1.5;
+            } else if (hallClass == "Platinum") {
+                rate = 2.0;
+            }
+            return static_cast<int>(ticketTotal * rate);
+        }
+    
+        void printBooking() const {
+            cout << "Booking ID: " << bookingId
+                 << " | Member ID: " << memberId
+                 << " | Hall Class: " << hallClass
+                 << " | Seats: ";
+            for (int i = 0; i < seatCount; i++) {
+                cout << seatLabels[i] << (i + 1 < seatCount ? ", " : "");
+            }
+            cout << " | Ticket Total: $" << ticketTotal
+                 << " | Ticket Loyalty Points: " << earnedPoints << endl;
+        }
+    };
+
 
 int main() {
     //  Module 1
