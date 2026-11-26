@@ -760,6 +760,153 @@ class Member {
         }
     };
     
+    // ============================================== MODULE 5 =====================================================
+class DistributorContract {
+    private:
+        string studioName;
+        double studioSharePercent;
+    
+    public:
+        DistributorContract() {
+            studioName = "Studio";
+            studioSharePercent = 50.0;
+        }
+    
+        DistributorContract(string studio, double sharePct) {
+            studioName = studio;
+            setStudioSharePercent(sharePct);
+        }
+    
+        DistributorContract(const DistributorContract& other) {
+            studioName = other.studioName;
+            studioSharePercent = other.studioSharePercent;
+        }
+    
+        void setStudioSharePercent(double sharePct) {
+            if (sharePct >= 0.0 && sharePct <= 100.0) {
+                studioSharePercent = sharePct;
+            }
+        }
+    
+        string getStudioName() const { return studioName; }
+        double getStudioSharePercent() const { return studioSharePercent; }
+        double getCinemaSharePercent() const { return 100.0 - studioSharePercent; }
+    };
+    
+    class BoxOfficeReport {
+    private:
+        string movieTitle;
+        int ticketsSold;
+        int totalSeats;
+        double ticketRevenue;
+    
+    public:
+        BoxOfficeReport() {
+            movieTitle = "Untitled";
+            ticketsSold = 0;
+            totalSeats = 1;
+            ticketRevenue = 0.0;
+        }
+    
+        BoxOfficeReport(string title, int sold, int seats, double revenue) {
+            movieTitle = title;
+            setTotalSeats(seats);
+            setTicketsSold(sold);
+            setTicketRevenue(revenue);
+        }
+    
+        BoxOfficeReport(const BoxOfficeReport& other) {
+            movieTitle = other.movieTitle;
+            ticketsSold = other.ticketsSold;
+            totalSeats = other.totalSeats;
+            ticketRevenue = other.ticketRevenue;
+        }
+    
+        void setTotalSeats(int seats) {
+            if (seats > 0) totalSeats = seats;
+        }
+    
+        void setTicketsSold(int sold) {
+            if (sold >= 0 && sold <= totalSeats) {
+                ticketsSold = sold;
+            }
+        }
+    
+        void setTicketRevenue(double revenue) {
+            if (revenue >= 0.0) ticketRevenue = revenue;
+        }
+    
+        string getMovieTitle() const { return movieTitle; }
+        int getTicketsSold() const { return ticketsSold; }
+        int getTotalSeats() const { return totalSeats; }
+        double getTicketRevenue() const { return ticketRevenue; }
+    
+        double calculateOccupancy() const {
+            return (static_cast<double>(ticketsSold) / totalSeats) * 100.0;
+        }
+    
+        void printReport() const {
+            cout << "Box Office Report [" << movieTitle << "] | Sold: " << ticketsSold
+                 << "/" << totalSeats << " (" << calculateOccupancy()
+                 << "% occupancy) | Ticket Revenue: $" << ticketRevenue << endl;
+        }
+    };
+    
+    class Settlement {
+    private:
+        DistributorContract contract;
+        BoxOfficeReport report;
+        double snackProfit;
+        double giftCardValue;
+    
+    public:
+        Settlement() {
+            snackProfit = 0.0;
+            giftCardValue = 0.0;
+        }
+    
+        Settlement(DistributorContract c, BoxOfficeReport r, double sProfit, double gcValue) {
+            contract = c;
+            report = r;
+            snackProfit = sProfit;
+            setGiftCardValue(gcValue);
+        }
+    
+        Settlement(const Settlement& other) {
+            contract = other.contract;
+            report = other.report;
+            snackProfit = other.snackProfit;
+            giftCardValue = other.giftCardValue;
+        }
+    
+        void setGiftCardValue(double gcValue) {
+            if (gcValue >= 0.0) {
+                giftCardValue = gcValue;
+            }
+        }
+    
+        double calculateStudioPayout() const {
+            return report.getTicketRevenue() * (contract.getStudioSharePercent() / 100.0);
+        }
+    
+        double calculateCinemaTicketShare() const {
+            return report.getTicketRevenue() - calculateStudioPayout();
+        }
+    
+        double calculateNetProfit() const {
+            return calculateCinemaTicketShare() + snackProfit - giftCardValue;
+        }
+    
+        void printSettlement() const {
+            cout << "=== Final Settlement (" << contract.getStudioName() << ") ===" << endl;
+            report.printReport();
+            cout << "Studio Payout (" << contract.getStudioSharePercent() << "%): $" << calculateStudioPayout() << endl;
+            cout << "Cinema Ticket Share: $" << calculateCinemaTicketShare() << endl;
+            cout << "Snack Profit (from M3): $" << snackProfit << endl;
+            cout << "Gift Card Value (from M4): -$" << giftCardValue << endl;
+            cout << "NET PROFIT: $" << calculateNetProfit() << endl;
+        }
+    };
 
 int main() {
     //  Module 1
